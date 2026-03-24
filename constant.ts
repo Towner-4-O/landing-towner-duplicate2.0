@@ -1,11 +1,7 @@
-// MVP 2.0
-// export const BACKEND_BASE_URL = 'https://api.nimmavahana.com'
 
-// LOCAL;
-// export const BACKEND_BASE_URL = "http://localhost:3001";
+// // PRODUCTION 
 
-// // PRODUCTION
-export const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL ? process.env.BACKEND_BASE_URL : 'http://localhost:8085/towner-app/api/v1';
+export const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL ? process.env.NEXT_PUBLIC_BACKEND_BASE_URL : 'http://localhost:8085/towner-app/api/v1';
 
 export const media = {
   OIOT_URL: "https://oiot.app",
