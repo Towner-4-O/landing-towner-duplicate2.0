@@ -149,20 +149,14 @@ export function Hero() {
   ];
 
   const phoneImages = [
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770459699627-153449ba-5420-4495-ba99-770c82732b1e.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770459760431-4462f313-ccda-40c1-babd-62ea634c44b7.jpeg`,
-    // `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770459908199-f1ef19e6-cf1e-4a76-bf6d-e3463074e712.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770459936050-584c4579-370f-4db8-aeee-d304b8ac0fa5.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770459975910-38b794eb-c58f-41c8-9c1b-c11456f30f22.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460128543-b0e1c0c3-b541-4f0a-a813-59b0ad5081b9.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460159533-60bbbff8-2138-44b1-8f18-627fc38c6ff4.jpeg`,
-    // `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460181200-b659a700-f642-4535-b40d-7bedc9b79326.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460216554-00b749b7-7307-4241-b74c-57f2535ed97c.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460240933-922f1a56-47bf-4cd9-ac7a-4d91fb4abc02.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460265833-40dacc31-586f-48ef-9580-cd5a6fa51dfa.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460420858-8011a188-0709-4add-ba81-ea3e4253bb7b.jpeg`,
-    `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460455943-99390db4-3a32-4d28-83da-4d7dd180a1e4.jpeg`,
-    // `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}1770460484093-06f309fc-0845-407f-bb6c-bd63991b80d2.jpeg`,
+    "/assets/hero/slide-image/1.PNG",
+    "/assets/hero/slide-image/2.PNG",
+    "/assets/hero/slide-image/3.PNG",
+    "/assets/hero/slide-image/34.PNG",
+    "/assets/hero/slide-image/35.PNG",
+    "/assets/hero/slide-image/36.PNG",
+    "/assets/hero/slide-image/37.PNG",
+    "/assets/hero/slide-image/38.PNG",
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
