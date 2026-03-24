@@ -6,9 +6,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,  // ✅ Skips ESLint on npm run build
   },
-  reactStrictMode: true,
-  distDir: 'build',
-  output: 'standalone',
 }
 
 module.exports = nextConfig
