@@ -314,8 +314,7 @@ export function Hero() {
           <Button
             onClick={handleRedirect}
             size="sm"
-            variant="outline"
-            className="!text-white hover:bg-white/10 !border-white/40 flex-1 h-11 rounded-xl font-semibold text-sm"
+            className="bg-transparent text-white border border-white/50 hover:bg-white/10 flex-1 h-11 rounded-xl font-semibold text-sm"
           >
             Be a Driver <Car className="h-4 w-4 ml-1" />
           </Button>
