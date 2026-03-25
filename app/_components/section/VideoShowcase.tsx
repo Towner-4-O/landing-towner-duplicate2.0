@@ -62,7 +62,7 @@ const VideoShowcase = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [isAPIReady, setIsAPIReady] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
@@ -229,16 +229,7 @@ const VideoShowcase = () => {
     [duration, handleSeek]
   );
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left - rect.width / 2) / 25;
-    const y = (e.clientY - rect.top - rect.height / 2) / 25;
-    setMousePosition({ x, y });
-  };
 
-  const handleMouseLeave = () => {
-    setMousePosition({ x: 0, y: 0 });
-  };
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -277,9 +268,128 @@ const VideoShowcase = () => {
           </svg>
         </div>
 
-        {/* Content Grid: Left content + Right video */}
-        <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-16 max-w-7xl mx-auto">
-          {/* Left Side - Content */}
+        {/* Content Grid: Left phone + Right content */}
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16 max-w-7xl mx-auto">
+
+          {/* Left Side - Phone Mockup with Video */}
+          <div
+            className="w-full lg:w-1/2 flex items-center justify-center relative"
+            ref={containerRef}
+          >
+            {/* Background glow effects */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[280px] h-[560px] bg-[#A8FF01]/25 blur-[60px] rounded-full animate-pulse" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[340px] h-[640px] bg-gradient-to-br from-[#A8FF01]/15 via-transparent to-cyan-400/10 blur-[80px] rounded-full" />
+
+            {/* Phone Frame — no hover tilt */}
+            <div
+              className="relative w-[280px] h-[580px] md:w-[300px] md:h-[620px] bg-black border-[8px] border-gray-900 rounded-[3rem] shadow-2xl overflow-hidden z-20 ring-1 ring-gray-700/50"
+            >
+              {/* Side Buttons */}
+              <div className="absolute left-[-10px] top-[100px] w-[3px] h-[50px] bg-gray-800 rounded-l-sm" />
+              <div className="absolute left-[-10px] top-[160px] w-[3px] h-[60px] bg-gray-800 rounded-l-sm" />
+              <div className="absolute left-[-10px] top-[230px] w-[3px] h-[60px] bg-gray-800 rounded-l-sm" />
+              <div className="absolute right-[-10px] top-[180px] w-[3px] h-[80px] bg-gray-800 rounded-r-sm" />
+
+              {/* Notch */}
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 h-6 w-32 bg-gray-900 rounded-b-xl z-30 flex items-center justify-center gap-2">
+                <div className="w-12 h-1 bg-gray-700 rounded-full mt-2" />
+              </div>
+
+              {/* YouTube Video — scaled to fill phone screen for 9:16 vertical video */}
+              <div className="relative w-full h-full bg-black rounded-[2.5rem] overflow-hidden">
+                <div
+                  className="absolute top-1/2 left-1/2"
+                  style={{
+                    width: '320%',
+                    height: '100%',
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  <div id="yt-player" className="w-full h-full" />
+                </div>
+
+                {/* Clickable overlay to prevent YouTube click-through */}
+                <div className="absolute inset-0 z-10" />
+
+                {/* Video Controls Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 z-20 pb-5 pt-10 px-3">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-b-[2.5rem] pointer-events-none" />
+
+                  <div className="relative space-y-2.5">
+                    {/* Timeline / Progress Bar */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-white/70 font-mono min-w-[28px] text-right">
+                        {formatTime(currentTime)}
+                      </span>
+                      <div
+                        ref={progressRef}
+                        className="flex-1 h-[6px] bg-white/20 rounded-full cursor-pointer group relative"
+                        onMouseDown={handleSeekMouseDown}
+                      >
+                        <div
+                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#8dc720] to-[#A8FF01] rounded-full transition-all duration-100"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                        <div
+                          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-[#A8FF01] rounded-full shadow-lg shadow-[#A8FF01]/40 transition-transform duration-100 group-hover:scale-125"
+                          style={{
+                            left: `${progressPercent}%`,
+                            transform: `translate(-50%, -50%)`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-white/70 font-mono min-w-[28px]">
+                        {formatTime(duration)}
+                      </span>
+                    </div>
+
+                    {/* Controls row */}
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={togglePlay}
+                        className="w-9 h-9 bg-white/15 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/25 transition-all duration-200 hover:scale-110 active:scale-95"
+                        aria-label={isPlaying ? 'Pause video' : 'Play video'}
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-3.5 w-3.5 text-white" />
+                        ) : (
+                          <Play className="h-3.5 w-3.5 text-white ml-0.5" />
+                        )}
+                      </button>
+
+                      <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#A8FF01] animate-pulse" />
+                        <span className="text-white/90 text-[10px] font-medium">
+                          Live Demo
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={toggleMute}
+                        className="w-9 h-9 bg-white/15 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/25 transition-all duration-200 hover:scale-110 active:scale-95"
+                        aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                      >
+                        {isMuted ? (
+                          <VolumeX className="h-3.5 w-3.5 text-white" />
+                        ) : (
+                          <Volume2 className="h-3.5 w-3.5 text-white" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhanced Reflection/Glare Effect */}
+              <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none rounded-[3rem] z-30" />
+              <div className="absolute top-[20%] right-[10%] w-[100px] h-[100px] bg-white/5 blur-2xl rounded-full pointer-events-none z-30" />
+
+              {/* Bottom Home Indicator */}
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-100/50 rounded-full z-20" />
+            </div>
+          </div>
+
+          {/* Right Side - Content */}
           <div className="w-full lg:w-1/2 space-y-6">
             <div className="space-y-2 mb-8">
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -310,143 +420,6 @@ const VideoShowcase = () => {
                   </p>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Right Side - Phone Mockup with Video */}
-          <div
-            className="w-full lg:w-1/2 flex items-center justify-center relative"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            ref={containerRef}
-          >
-            {/* Background glow effects */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[280px] h-[560px] bg-[#A8FF01]/25 blur-[60px] rounded-full animate-pulse" />
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[340px] h-[640px] bg-gradient-to-br from-[#A8FF01]/15 via-transparent to-cyan-400/10 blur-[80px] rounded-full" />
-
-            {/* Phone Frame */}
-            <div
-              className="relative w-[280px] h-[580px] md:w-[300px] md:h-[620px] bg-black border-[8px] border-gray-900 rounded-[3rem] shadow-2xl overflow-hidden z-20 ring-1 ring-gray-700/50 transition-all duration-300 ease-out"
-              style={{
-                transform: `perspective(1000px) rotateY(${mousePosition.x}deg) rotateX(${-mousePosition.y}deg)`,
-              }}
-            >
-              {/* Side Buttons */}
-              <div className="absolute left-[-10px] top-[100px] w-[3px] h-[50px] bg-gray-800 rounded-l-sm" />
-              <div className="absolute left-[-10px] top-[160px] w-[3px] h-[60px] bg-gray-800 rounded-l-sm" />
-              <div className="absolute left-[-10px] top-[230px] w-[3px] h-[60px] bg-gray-800 rounded-l-sm" />
-              <div className="absolute right-[-10px] top-[180px] w-[3px] h-[80px] bg-gray-800 rounded-r-sm" />
-
-              {/* Notch */}
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 h-6 w-32 bg-gray-900 rounded-b-xl z-30 flex items-center justify-center gap-2">
-                <div className="w-12 h-1 bg-gray-700 rounded-full mt-2" />
-              </div>
-
-              {/* YouTube Video — scaled to fill phone screen for 9:16 vertical video */}
-              <div className="relative w-full h-full bg-black rounded-[2.5rem] overflow-hidden">
-                {/*
-                  YouTube renders ALL videos inside a 16:9 player.
-                  A 9:16 vertical video gets pillarboxed (black bars on sides).
-                  The actual video content occupies the center ~31.6% of the width.
-                  To fill our ~9:19 phone frame with the 9:16 video content:
-                  - We scale the iframe width by ~3.2x so the video portion fills the frame width.
-                  - We let overflow:hidden clip the black bars.
-                */}
-                <div
-                  className="absolute top-1/2 left-1/2"
-                  style={{
-                    width: '320%',
-                    height: '100%',
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                >
-                  <div id="yt-player" className="w-full h-full" />
-                </div>
-
-                {/* Clickable overlay to prevent YouTube click-through */}
-                <div className="absolute inset-0 z-10" />
-
-                {/* Video Controls Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 z-20 pb-5 pt-10 px-3">
-                  {/* Gradient fade for controls area */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-b-[2.5rem] pointer-events-none" />
-
-                  <div className="relative space-y-2.5">
-                    {/* Timeline / Progress Bar */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-white/70 font-mono min-w-[28px] text-right">
-                        {formatTime(currentTime)}
-                      </span>
-                      <div
-                        ref={progressRef}
-                        className="flex-1 h-[6px] bg-white/20 rounded-full cursor-pointer group relative"
-                        onMouseDown={handleSeekMouseDown}
-                      >
-                        {/* Buffered/progress track */}
-                        <div
-                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#8dc720] to-[#A8FF01] rounded-full transition-all duration-100"
-                          style={{ width: `${progressPercent}%` }}
-                        />
-                        {/* Seek thumb */}
-                        <div
-                          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-[#A8FF01] rounded-full shadow-lg shadow-[#A8FF01]/40 transition-transform duration-100 group-hover:scale-125"
-                          style={{
-                            left: `${progressPercent}%`,
-                            transform: `translate(-50%, -50%)`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-[10px] text-white/70 font-mono min-w-[28px]">
-                        {formatTime(duration)}
-                      </span>
-                    </div>
-
-                    {/* Controls row */}
-                    <div className="flex items-center justify-between">
-                      {/* Play/Pause */}
-                      <button
-                        onClick={togglePlay}
-                        className="w-9 h-9 bg-white/15 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/25 transition-all duration-200 hover:scale-110 active:scale-95"
-                        aria-label={isPlaying ? 'Pause video' : 'Play video'}
-                      >
-                        {isPlaying ? (
-                          <Pause className="h-3.5 w-3.5 text-white" />
-                        ) : (
-                          <Play className="h-3.5 w-3.5 text-white ml-0.5" />
-                        )}
-                      </button>
-
-                      {/* Live indicator */}
-                      <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#A8FF01] animate-pulse" />
-                        <span className="text-white/90 text-[10px] font-medium">
-                          Live Demo
-                        </span>
-                      </div>
-
-                      {/* Mute/Unmute */}
-                      <button
-                        onClick={toggleMute}
-                        className="w-9 h-9 bg-white/15 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/25 transition-all duration-200 hover:scale-110 active:scale-95"
-                        aria-label={isMuted ? 'Unmute video' : 'Mute video'}
-                      >
-                        {isMuted ? (
-                          <VolumeX className="h-3.5 w-3.5 text-white" />
-                        ) : (
-                          <Volume2 className="h-3.5 w-3.5 text-white" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Enhanced Reflection/Glare Effect */}
-              <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none rounded-[3rem] z-30" />
-              <div className="absolute top-[20%] right-[10%] w-[100px] h-[100px] bg-white/5 blur-2xl rounded-full pointer-events-none z-30" />
-
-              {/* Bottom Home Indicator */}
-              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-100/50 rounded-full z-20" />
             </div>
           </div>
         </div>
