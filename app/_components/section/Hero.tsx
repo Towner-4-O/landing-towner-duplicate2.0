@@ -114,7 +114,11 @@ import Image from "next/image";
 import { Download, Car, ChevronLeft, ChevronRight } from "lucide-react";
 import { media } from "@/constant";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+
+// Tiny 10x20 gray placeholder encoded as base64 data URL
+const BLUR_PLACEHOLDER =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAUCAYAAAC07qxWAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAJ0lEQVQokWN89+7dfwYGBgZGRkYGBgYmBjIBEwOFYNTQUUNHoqEAAPl0BAVang8bAAAAAElFTkSuQmCC";
 
 export function Hero() {
   const router = useRouter();
@@ -162,7 +166,7 @@ export function Hero() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [phoneImageIndex, setPhoneImageIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isFirstImageLoaded, setIsFirstImageLoaded] = useState(false);
+  const [imagesReady, setImagesReady] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -174,17 +178,39 @@ export function Hero() {
     return () => clearInterval(interval);
   }, [slides.length]);
 
+  // Preload all phone images in the background via Image objects
   useEffect(() => {
-    if (!isFirstImageLoaded) return; // Wait for first image to load before starting slider
+    let loaded = 0;
+    phoneImages.forEach((src) => {
+      const img = new window.Image();
+      img.src = src;
+      img.onload = () => {
+        loaded++;
+        if (loaded >= phoneImages.length) {
+          setImagesReady(true);
+        }
+      };
+      img.onerror = () => {
+        loaded++;
+        if (loaded >= phoneImages.length) {
+          setImagesReady(true);
+        }
+      };
+    });
+    // Mark ready after a timeout regardless (fallback)
+    const timer = setTimeout(() => setImagesReady(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
+  useEffect(() => {
     const interval = setInterval(() => {
       setPhoneImageIndex((prevIndex) =>
         prevIndex === phoneImages.length - 1 ? 0 : prevIndex + 1
       );
-    }, 3000); // Faster slide for phone images
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, [phoneImages.length, isFirstImageLoaded]);
+  }, [phoneImages.length]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -364,34 +390,24 @@ export function Hero() {
 
             {/* Screen Content - Slider */}
             <div className="relative w-full h-full bg-white rounded-[2.5rem] overflow-hidden p-3 bg-opacity-90">
-              {phoneImages.map((img, index) => {
-                // Ensure only the first image loads initially
-                if (index !== 0 && !isFirstImageLoaded) return null;
-
-                return (
-                  <Image
-                    key={index}
-                    src={img}
-                    alt={`App Screenshot ${index + 1}`}
-                    fill
-                    onLoad={() => {
-                      if (index === 0) setIsFirstImageLoaded(true);
-                    }}
-                    className={`object-contain rounded-2xl transition-all duration-700 ease-in-out ${index === phoneImageIndex
+              {phoneImages.map((img, index) => (
+                <Image
+                  key={index}
+                  src={img}
+                  alt={`App Screenshot ${index + 1}`}
+                  fill
+                  sizes="300px"
+                  placeholder="blur"
+                  blurDataURL={BLUR_PLACEHOLDER}
+                  className={`object-contain rounded-2xl transition-all duration-700 ease-in-out ${
+                    index === phoneImageIndex
                       ? "opacity-100 translate-x-0 scale-100"
                       : "opacity-0 translate-x-full scale-95"
-                      }`}
-                    priority={index === 0}
-                  />
-                );
-              })}
-
-              {/* Loader/Placeholder if not loaded */}
-              {!isFirstImageLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-2xl z-10">
-                  <div className="w-8 h-8 border-4 border-[#A8FF01] border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
+                  }`}
+                  priority={index < 3}
+                  loading={index < 3 ? undefined : "eager"}
+                />
+              ))}
 
               {/* Phone Screen Indicators */}
               <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex space-x-1.5 bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
