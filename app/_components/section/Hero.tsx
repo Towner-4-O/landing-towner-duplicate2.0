@@ -234,27 +234,31 @@ export function Hero() {
 
   return (
     <section className="relative min-h-screen md:h-[85vh] overflow-hidden p-4 mt-2 md:mt-4">
-      {/* Background Image Slideshow */}
+      {/* Background Image Slideshow - Desktop only */}
       <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl h-full">
+        {/* Mobile: clean gradient background */}
+        <div className="md:hidden absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 rounded-3xl" />
+
+        {/* Desktop: photo slideshow */}
         {slides.map((slide, index) => (
           <Image
             key={index}
             src={slide.image}
             alt={`Background ${index + 1}`}
             fill
-            className={`object-cover rounded-3xl filter transition-all duration-1000 ease-in-out ${index === currentImageIndex
+            className={`hidden md:block object-cover rounded-3xl filter transition-all duration-1000 ease-in-out ${index === currentImageIndex
               ? "opacity-100 scale-100"
               : "opacity-0 scale-105"
               }`}
             priority={index === 0}
           />
         ))}
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/50 rounded-3xl w-full z-10" />
+        {/* Overlay - desktop only */}
+        <div className="hidden md:block absolute inset-0 bg-black/50 rounded-3xl w-full z-10" />
       </div>
 
-      {/* Slide Indicators */}
-      <div className="absolute bottom-16 md:bottom-20 left-1/2 transform -translate-x-1/2 z-30 flex space-x-2">
+      {/* Slide Indicators - Desktop only */}
+      <div className="hidden md:flex absolute bottom-20 left-1/2 transform -translate-x-1/2 z-30 space-x-2">
         {slides.map((_, index) => (
           <button
             key={index}
@@ -267,14 +271,23 @@ export function Hero() {
         ))}
       </div>
 
-      {/* Mobile View */}
-      <div className="md:hidden absolute inset-0 flex flex-col justify-center items-center p-4 z-20">
-        <div className="absolute bottom-4 z-30">
-          <h1 className="text-2xl font-bold leading-tight mb-4 text-white text-center">
+      {/* ─── Mobile View ─── */}
+      <div className="md:hidden relative z-20 flex flex-col items-center min-h-[calc(100vh-2rem)] px-2 pt-16 pb-8">
+        {/* Top Content */}
+        <div className="text-center mb-5">
+          {/* Small tag */}
+          <div className="inline-flex items-center gap-1.5 bg-[#A8FF01]/15 border border-[#A8FF01]/30 backdrop-blur-sm px-3 py-1 rounded-full mb-5">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#A8FF01] animate-pulse" />
+            <span className="text-[#A8FF01] text-xs font-medium tracking-wide">
+              100% Commission Free
+            </span>
+          </div>
+
+          <h1 className="text-3xl font-extrabold leading-tight mb-3 text-white">
             <div className="space-y-1">
               <div>{slides[currentImageIndex].title}</div>
               <div>{slides[currentImageIndex].subtitle}</div>
-              <div className="inline-block bg-[#A8FF01] text-black px-2 py-1 rounded-none font-extrabold transform -skew-x-12">
+              <div className="inline-block bg-[#A8FF01] text-black px-3 py-1 rounded-sm font-extrabold transform -skew-x-12 mt-1">
                 <span className="inline-block transform skew-x-12">
                   {slides[currentImageIndex].highlight}
                 </span>
@@ -282,30 +295,84 @@ export function Hero() {
             </div>
           </h1>
 
-          <p
-            className="text-sm text-gray-100 mb-6 text-center px-14"
-            style={{ textShadow: "2px 2px 5px rgba(0,0,0,0.7)" }}
-          >
-            Free yourself from the aggregators. Download the Towner App!
+          <p className="text-sm text-gray-400 max-w-xs mx-auto leading-relaxed mt-4">
+            Free yourself from the aggregators. Download the Towner App and keep
+            100% of your earnings.
           </p>
+        </div>
 
-          <div className="flex flex-row gap-4 items-center justify-center px-20 z-30">
-            <Button
-              onClick={handleRedirect}
-              size="sm"
-              className="bg-[#A8FF01] text-black hover:bg-[#95e603] w-full h-10 rounded-xl"
-            >
-              Download <Download className="h-6 w-6" />
-            </Button>
+        {/* CTA Buttons */}
+        <div className="flex flex-row gap-3 w-full max-w-xs mb-4">
+          <Button
+            onClick={handleRedirect}
+            size="sm"
+            className="bg-[#A8FF01] text-black hover:bg-[#95e603] flex-1 h-11 rounded-xl font-semibold text-sm"
+          >
+            Download <Download className="h-4 w-4 ml-1" />
+          </Button>
 
-            <Button
-              onClick={handleRedirect}
-              size="sm"
-              variant="outline"
-              className="text-black hover:bg-black hover:text-white border-white w-full h-10 rounded-xl"
-            >
-              Become driver <Car className="h-6 w-6" />
-            </Button>
+          <Button
+            onClick={handleRedirect}
+            size="sm"
+            variant="outline"
+            className="!text-white hover:bg-white/10 !border-white/40 flex-1 h-11 rounded-xl font-semibold text-sm"
+          >
+            Be a Driver <Car className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+
+        {/* Phone Mockup */}
+        <div className="relative flex-1 flex items-center justify-center w-full">
+          {/* Glow behind phone */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[240px] h-[400px] bg-[#A8FF01]/20 blur-[70px] rounded-full" />
+
+          {/* Phone */}
+          <div className="relative w-[220px] h-[440px] bg-black border-[6px] border-gray-800 rounded-[2.4rem] shadow-[0_0_60px_rgba(168,255,1,0.15)] overflow-hidden z-20 ring-1 ring-gray-700/40">
+            {/* Notch */}
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 h-5 w-24 bg-gray-900 rounded-b-xl z-20 flex items-center justify-center">
+              <div className="w-10 h-0.5 bg-gray-700 rounded-full mt-1.5" />
+            </div>
+
+            {/* Screen */}
+            <div className="relative w-full h-full bg-white rounded-[2rem] overflow-hidden p-2">
+              {phoneImages.map((img, index) => (
+                <Image
+                  key={index}
+                  src={img}
+                  alt={`App Screenshot ${index + 1}`}
+                  fill
+                  sizes="220px"
+                  placeholder="blur"
+                  blurDataURL={BLUR_PLACEHOLDER}
+                  className={`object-contain rounded-xl transition-all duration-700 ease-in-out ${
+                    index === phoneImageIndex
+                      ? "opacity-100 translate-x-0 scale-100"
+                      : "opacity-0 translate-x-full scale-95"
+                  }`}
+                  priority={index < 2}
+                  loading={index < 2 ? undefined : "eager"}
+                />
+              ))}
+
+              {/* Slide dots */}
+              <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 z-30 flex space-x-1 bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                {phoneImages.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-1 rounded-full transition-all duration-300 ${
+                      index === phoneImageIndex
+                        ? "bg-[#A8FF01] w-3"
+                        : "bg-white/50 w-1"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Glare */}
+            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-tr from-transparent via-white/8 to-transparent pointer-events-none rounded-[2.4rem] z-30" />
+            {/* Home indicator */}
+            <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-24 h-0.5 bg-gray-100/40 rounded-full z-20" />
           </div>
         </div>
       </div>
