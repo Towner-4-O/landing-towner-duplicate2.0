@@ -49,13 +49,28 @@ const features = [
 
 const YOUTUBE_VIDEO_ID = 'EoO8PHpIPTY';
 
+// Format seconds to MM:SS
+const formatTime = (seconds: number): string => {
+  if (isNaN(seconds) || seconds < 0) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
 const VideoShowcase = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [isAPIReady, setIsAPIReady] = useState(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isSeeking, setIsSeeking] = useState(false);
+
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const timeUpdateRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -84,6 +99,8 @@ const VideoShowcase = () => {
 
     playerRef.current = new window.YT.Player('yt-player', {
       videoId: YOUTUBE_VIDEO_ID,
+      width: '100%',
+      height: '100%',
       playerVars: {
         autoplay: 1,
         mute: 1,
@@ -102,10 +119,15 @@ const VideoShowcase = () => {
       events: {
         onReady: (event: any) => {
           event.target.playVideo();
+          setIsPlayerReady(true);
+          const dur = event.target.getDuration();
+          if (dur) setDuration(dur);
         },
         onStateChange: (event: any) => {
           if (event.data === window.YT.PlayerState.PLAYING) {
             setIsPlaying(true);
+            const dur = playerRef.current?.getDuration();
+            if (dur) setDuration(dur);
           } else if (event.data === window.YT.PlayerState.PAUSED) {
             setIsPlaying(false);
           }
@@ -119,6 +141,24 @@ const VideoShowcase = () => {
       }
     };
   }, [isAPIReady]);
+
+  // Poll current time for progress bar
+  useEffect(() => {
+    if (!isPlayerReady) return;
+
+    timeUpdateRef.current = setInterval(() => {
+      if (playerRef.current?.getCurrentTime && !isSeeking) {
+        const time = playerRef.current.getCurrentTime();
+        setCurrentTime(time);
+        const dur = playerRef.current.getDuration();
+        if (dur && dur !== duration) setDuration(dur);
+      }
+    }, 300);
+
+    return () => {
+      if (timeUpdateRef.current) clearInterval(timeUpdateRef.current);
+    };
+  }, [isPlayerReady, isSeeking, duration]);
 
   const togglePlay = useCallback(() => {
     if (!playerRef.current) return;
@@ -140,6 +180,55 @@ const VideoShowcase = () => {
     }
   }, [isMuted]);
 
+  // Seek on progress bar click
+  const handleSeek = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!progressRef.current || !playerRef.current || !duration) return;
+      const rect = progressRef.current.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+      const seekTime = percentage * duration;
+      playerRef.current.seekTo(seekTime, true);
+      setCurrentTime(seekTime);
+    },
+    [duration]
+  );
+
+  // Drag-to-seek on progress bar
+  const handleSeekMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      setIsSeeking(true);
+      handleSeek(e);
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        if (!progressRef.current || !playerRef.current || !duration) return;
+        const rect = progressRef.current.getBoundingClientRect();
+        const clickX = moveEvent.clientX - rect.left;
+        const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+        const seekTime = percentage * duration;
+        setCurrentTime(seekTime);
+      };
+
+      const handleMouseUp = (upEvent: MouseEvent) => {
+        if (progressRef.current && playerRef.current && duration) {
+          const rect = progressRef.current.getBoundingClientRect();
+          const clickX = upEvent.clientX - rect.left;
+          const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+          const seekTime = percentage * duration;
+          playerRef.current.seekTo(seekTime, true);
+          setCurrentTime(seekTime);
+        }
+        setIsSeeking(false);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    },
+    [duration, handleSeek]
+  );
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left - rect.width / 2) / 25;
@@ -150,6 +239,8 @@ const VideoShowcase = () => {
   const handleMouseLeave = () => {
     setMousePosition({ x: 0, y: 0 });
   };
+
+  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <section className="py-5 md:py-24 relative overflow-hidden">
@@ -251,14 +342,22 @@ const VideoShowcase = () => {
                 <div className="w-12 h-1 bg-gray-700 rounded-full mt-2" />
               </div>
 
-              {/* YouTube Video */}
+              {/* YouTube Video — scaled to fill phone screen for 9:16 vertical video */}
               <div className="relative w-full h-full bg-black rounded-[2.5rem] overflow-hidden">
+                {/*
+                  YouTube renders ALL videos inside a 16:9 player.
+                  A 9:16 vertical video gets pillarboxed (black bars on sides).
+                  The actual video content occupies the center ~31.6% of the width.
+                  To fill our ~9:19 phone frame with the 9:16 video content:
+                  - We scale the iframe width by ~3.2x so the video portion fills the frame width.
+                  - We let overflow:hidden clip the black bars.
+                */}
                 <div
-                  className="absolute inset-0"
+                  className="absolute top-1/2 left-1/2"
                   style={{
-                    // Scale up to hide YouTube branding/black bars for vertical video
-                    transform: 'scale(1.8)',
-                    transformOrigin: 'center center',
+                    width: '320%',
+                    height: '100%',
+                    transform: 'translate(-50%, -50%)',
                   }}
                 >
                   <div id="yt-player" className="w-full h-full" />
@@ -268,44 +367,76 @@ const VideoShowcase = () => {
                 <div className="absolute inset-0 z-10" />
 
                 {/* Video Controls Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 z-20 p-4">
+                <div className="absolute bottom-0 left-0 right-0 z-20 pb-5 pt-10 px-3">
                   {/* Gradient fade for controls area */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent rounded-b-[2.5rem] pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-b-[2.5rem] pointer-events-none" />
 
-                  <div className="relative flex items-center justify-between">
-                    {/* Play/Pause */}
-                    <button
-                      onClick={togglePlay}
-                      className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-all duration-200 hover:scale-110 active:scale-95"
-                      aria-label={isPlaying ? 'Pause video' : 'Play video'}
-                    >
-                      {isPlaying ? (
-                        <Pause className="h-4 w-4 text-white" />
-                      ) : (
-                        <Play className="h-4 w-4 text-white ml-0.5" />
-                      )}
-                    </button>
-
-                    {/* Live indicator */}
-                    <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-[#A8FF01] animate-pulse" />
-                      <span className="text-white/90 text-xs font-medium">
-                        Live Demo
+                  <div className="relative space-y-2.5">
+                    {/* Timeline / Progress Bar */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-white/70 font-mono min-w-[28px] text-right">
+                        {formatTime(currentTime)}
+                      </span>
+                      <div
+                        ref={progressRef}
+                        className="flex-1 h-[6px] bg-white/20 rounded-full cursor-pointer group relative"
+                        onMouseDown={handleSeekMouseDown}
+                      >
+                        {/* Buffered/progress track */}
+                        <div
+                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#8dc720] to-[#A8FF01] rounded-full transition-all duration-100"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                        {/* Seek thumb */}
+                        <div
+                          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-[#A8FF01] rounded-full shadow-lg shadow-[#A8FF01]/40 transition-transform duration-100 group-hover:scale-125"
+                          style={{
+                            left: `${progressPercent}%`,
+                            transform: `translate(-50%, -50%)`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-white/70 font-mono min-w-[28px]">
+                        {formatTime(duration)}
                       </span>
                     </div>
 
-                    {/* Mute/Unmute */}
-                    <button
-                      onClick={toggleMute}
-                      className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-all duration-200 hover:scale-110 active:scale-95"
-                      aria-label={isMuted ? 'Unmute video' : 'Mute video'}
-                    >
-                      {isMuted ? (
-                        <VolumeX className="h-4 w-4 text-white" />
-                      ) : (
-                        <Volume2 className="h-4 w-4 text-white" />
-                      )}
-                    </button>
+                    {/* Controls row */}
+                    <div className="flex items-center justify-between">
+                      {/* Play/Pause */}
+                      <button
+                        onClick={togglePlay}
+                        className="w-9 h-9 bg-white/15 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/25 transition-all duration-200 hover:scale-110 active:scale-95"
+                        aria-label={isPlaying ? 'Pause video' : 'Play video'}
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-3.5 w-3.5 text-white" />
+                        ) : (
+                          <Play className="h-3.5 w-3.5 text-white ml-0.5" />
+                        )}
+                      </button>
+
+                      {/* Live indicator */}
+                      <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#A8FF01] animate-pulse" />
+                        <span className="text-white/90 text-[10px] font-medium">
+                          Live Demo
+                        </span>
+                      </div>
+
+                      {/* Mute/Unmute */}
+                      <button
+                        onClick={toggleMute}
+                        className="w-9 h-9 bg-white/15 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/25 transition-all duration-200 hover:scale-110 active:scale-95"
+                        aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                      >
+                        {isMuted ? (
+                          <VolumeX className="h-3.5 w-3.5 text-white" />
+                        ) : (
+                          <Volume2 className="h-3.5 w-3.5 text-white" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
