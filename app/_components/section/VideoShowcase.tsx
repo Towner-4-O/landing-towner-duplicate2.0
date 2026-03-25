@@ -10,6 +10,8 @@ import {
   Shield,
   Zap,
   MapPin,
+  Banknote,
+  Users,
 } from 'lucide-react';
 
 // Extend Window for YouTube IFrame API
@@ -22,28 +24,28 @@ declare global {
 
 const features = [
   {
-    icon: Smartphone,
-    title: 'Seamless Experience',
+    icon: Banknote,
+    title: 'Zero Commission',
     description:
-      'An intuitive app designed for both drivers and riders with real-time tracking and instant booking.',
+      'Keep 100% of your hard-earned fares. Towner never takes a cut from your trip transactions.',
   },
   {
     icon: Shield,
-    title: 'Safe & Secure',
+    title: 'Transparent Billing',
     description:
-      'Verified drivers, trip sharing, and SOS features ensure complete safety for every ride.',
+      'Honest pricing with zero surge charges. What you see is exactly what you pay or earn.',
   },
   {
-    icon: Zap,
-    title: 'Lightning Fast',
+    icon: Smartphone,
+    title: 'Digital Empowerment',
     description:
-      'Get matched with the nearest driver in seconds. No waiting, no hassle.',
+      'Level up your taxi business with our professional digital meter and advanced SaaS tools.',
   },
   {
-    icon: MapPin,
-    title: 'Smart Navigation',
+    icon: Users,
+    title: 'Driver Independence',
     description:
-      'AI-powered routes that save time and fuel, giving you the most efficient trips every time.',
+      'Be your own boss. Build your own brand and customer base on India’s most honest platform.',
   },
 ];
 
@@ -250,8 +252,8 @@ const VideoShowcase = () => {
             See Towner in <span className="text-[#8dc720]">Action</span>
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto mb-2 text-lg">
-            Watch how Towner transforms the taxi experience for drivers and
-            riders alike
+            Experience the only 100% commission-free platform empowering drivers
+            to run their own independent taxi business.
           </p>
           <svg
             width="100"
