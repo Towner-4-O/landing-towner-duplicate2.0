@@ -4,6 +4,7 @@ import Faq from "./_components/section/Faq";
 import { Hero } from "./_components/section/Hero";
 import Highlights from "./_components/section/Highlights";
 import Info from "./_components/section/Info";
+import VideoShowcase from "./_components/section/VideoShowcase";
 import Offerings from "./_components/section/Offerings";
 import RideInfo from "./_components/section/RideInfo";
 import Testimonials from "./_components/section/Testimonials";
@@ -179,6 +180,7 @@ export default function Home() {
       <main className="min-h-screen">
         <Header />
         <Hero />
+        <VideoShowcase />
         <Info />
         <Offerings />
         <Highlights />
