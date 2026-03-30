@@ -4,6 +4,7 @@ import "./globals.css";
 import TemplateWrapper from "./_components/layout/TemplateWrapper";
 import { Toaster } from 'react-hot-toast'
 import Script from "next/script";
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: {
@@ -140,6 +141,7 @@ export default function RootLayout({
             }}
           />
         </TemplateWrapper>
+        <Analytics />
       </body>
     </html>
   );
