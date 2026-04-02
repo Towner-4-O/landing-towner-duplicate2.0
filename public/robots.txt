@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://website.towner.taxi
+
+# Sitemaps
+Sitemap: https://website.towner.taxi/sitemap.xml
