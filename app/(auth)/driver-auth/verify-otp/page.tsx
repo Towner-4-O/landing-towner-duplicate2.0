@@ -208,7 +208,12 @@ const VerifyOtpPage = () => {
         })
 
         toast.success("Signup successful! Account pending approval.")
-        router.push("/userspace/profile")
+        const playStoreUrl = process.env.NEXT_PUBLIC_TOWNER_PLAY_STORE_URL;
+        if (playStoreUrl) {
+          window.location.href = playStoreUrl;
+        } else {
+          router.push("/userspace/profile");
+        }
       }
 
     } catch (error: any) {
