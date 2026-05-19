@@ -3,32 +3,32 @@
 import BacktoHome from "@/app/_components/layout/BacktoHome";
 import React, { useEffect, useState } from "react";
 
-interface PrivacyData {
+interface AboutUsData {
   id: string;
   content: string;
   created_at: string;
   updated_at: string;
 }
 
-const PrivacyPolicy = () => {
-  const [data, setData] = useState<PrivacyData | null>(null);
+const AboutUsPage = () => {
+  const [data, setData] = useState<AboutUsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPrivacy = async () => {
+    const fetchAboutUs = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/legal/privacy`
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/legal/about`
         );
         if (!res.ok) {
-          throw new Error("Privacy Policy content not found");
+          throw new Error("About Us content not found");
         }
         const json = await res.json();
         if (json.success && json.data) {
           setData(json.data);
         } else {
-          throw new Error(json.message || "Failed to load Privacy Policy");
+          throw new Error(json.message || "Failed to load About Us content");
         }
       } catch (err: unknown) {
         setError(
@@ -39,7 +39,7 @@ const PrivacyPolicy = () => {
       }
     };
 
-    fetchPrivacy();
+    fetchAboutUs();
   }, []);
 
   return (
@@ -51,7 +51,7 @@ const PrivacyPolicy = () => {
             {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-xl font-semibold text-[#8dc720] mt-2">
-                PRIVACY POLICY
+                ABOUT US
               </h2>
             </div>
 
@@ -60,9 +60,7 @@ const PrivacyPolicy = () => {
               {loading && (
                 <div className="flex flex-col items-center justify-center py-16 gap-4">
                   <div className="w-10 h-10 border-4 border-[#8dc720] border-t-transparent rounded-full animate-spin" />
-                  <p className="text-gray-500 text-sm">
-                    Loading Privacy Policy...
-                  </p>
+                  <p className="text-gray-500 text-sm">Loading About Us...</p>
                 </div>
               )}
 
@@ -87,12 +85,12 @@ const PrivacyPolicy = () => {
             {!loading && !error && data && (
               <div className="mt-8 p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 text-center">
-                  For further information or concerns, please reach out to us at{" "}
+                  For inquiries, reach out to us at{" "}
                   <a
-                    href="mailto:privacy@towner.taxi"
+                    href="mailto:info@towner.taxi"
                     className="text-[#8dc720] hover:underline"
                   >
-                    privacy@towner.taxi
+                    info@towner.taxi
                   </a>
                 </p>
                 {data.updated_at && (
@@ -116,4 +114,4 @@ const PrivacyPolicy = () => {
   );
 };
 
-export default PrivacyPolicy;
+export default AboutUsPage;

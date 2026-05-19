@@ -66,6 +66,7 @@ const DriverSignup = ({ verifiedPhone, verifiedOTP, businessIdFromPath }: Driver
   const [isLoadingStates, setIsLoadingStates] = useState(false)
   const [isLoadingCities, setIsLoadingCities] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [citySearchQuery, setCitySearchQuery] = useState("")
 
   const [countries, setCountries] = useState<Country[]>([])
   const [states, setStates] = useState<State[]>([])
@@ -520,30 +521,54 @@ const DriverSignup = ({ verifiedPhone, verifiedOTP, businessIdFromPath }: Driver
           <FormField
             control={form.control}
             name="city"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>City</FormLabel>
-                <Select
-                  onValueChange={handleCityChange}
-                  value={field.value}
-                  disabled={!form.getValues('state') || isLoadingCities}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={isLoadingCities ? "Loading..." : "Select city"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {cities.map((city) => (
-                      <SelectItem key={city._id} value={city._id}>
-                        {city.city_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const filteredCities = cities.filter((city) =>
+                city.city_name.toLowerCase().includes(citySearchQuery.toLowerCase())
+              )
+
+              return (
+                <FormItem>
+                  <FormLabel>City</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      handleCityChange(value)
+                      setCitySearchQuery("")
+                    }}
+                    value={field.value}
+                    disabled={!form.getValues('state') || isLoadingCities}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={isLoadingCities ? "Loading..." : "Select city"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <div className="p-2 border-b">
+                        <Input
+                          placeholder="Search cities..."
+                          value={citySearchQuery}
+                          onChange={(e) => setCitySearchQuery(e.target.value)}
+                          className="h-8"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      {filteredCities.length > 0 ? (
+                        filteredCities.map((city) => (
+                          <SelectItem key={city._id} value={city._id}>
+                            {city.city_name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="p-2 text-center text-sm text-gray-500">
+                          No cities found
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )
+            }}
           />
 
           <Button

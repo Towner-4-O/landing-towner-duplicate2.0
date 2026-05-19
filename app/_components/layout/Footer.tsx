@@ -139,7 +139,7 @@ const Footer = () => {
               <li className="flex items-center gap-2">
                 <GoDot />
                 <Link
-                  href="/about"
+                  href="/aboutus"
                   className="hover:text-white transition-colors"
                 >
                   About Us
