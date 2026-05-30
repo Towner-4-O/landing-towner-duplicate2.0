@@ -13,6 +13,7 @@ export default function TemplateWrapper({
   const pathname = usePathname();
   const isUserspace =
     pathname?.startsWith("/userspace") || pathname?.startsWith("/driver-auth/");
+  const isReferralLanding = pathname?.startsWith("/ref");
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(true);
 
@@ -52,7 +53,7 @@ export default function TemplateWrapper({
   return (
     <>
       {children}
-      {!isUserspace && <Footer />}
+      {!isUserspace && !isReferralLanding && <Footer />}
     </>
   );
 }
