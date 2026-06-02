@@ -1,7 +1,14 @@
 
 // // PRODUCTION 
 
-export const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL ? process.env.NEXT_PUBLIC_BACKEND_BASE_URL : 'http://localhost:8085/towner-app/api/v1';
+export const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL ? process.env.NEXT_PUBLIC_BACKEND_BASE_URL : 'https://qa-townerappapi.nimmavahana.com/towner-app/api/v1';
+
+/** Referral landing: `/ref?code=ABC123` → Play Store with Install Referrer. */
+export const referral = {
+  androidPackageId: "com.towner.app",
+  autoRedirectMs: 3000,
+  landingPath: "/ref",
+};
 
 export const media = {
   OIOT_URL: "https://oiot.app",
