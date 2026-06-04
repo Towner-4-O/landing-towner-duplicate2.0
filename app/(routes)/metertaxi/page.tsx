@@ -62,7 +62,7 @@ export default function MeterTaxi() {
     animate: {
       scale: 1,
       opacity: 1,
-      transition: { delay: 0.7, type: "spring", stiffness: 300 },
+      transition: { delay: 0.7, type: "spring" as const, stiffness: 300 },
     },
   };
 
