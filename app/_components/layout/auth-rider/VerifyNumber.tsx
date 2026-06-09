@@ -264,7 +264,7 @@
 // export default VerifyNumber
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -294,23 +294,73 @@ interface VerifyNumberProps {
   onVerificationSuccess: (phone: string, otp: string) => void,
   color?: string;
   text?: string;
+  /** Pre-filled phone — skips phone entry when combined with autoSendOtp */
+  initialPhone?: string;
+  /** Automatically send OTP for initialPhone on mount */
+  autoSendOtp?: boolean;
 }
 
-const VerifyNumber = ({ onVerificationSuccess, color = "#A8FF01", text = "#000000" }: VerifyNumberProps) => {
+const VerifyNumber = ({
+  onVerificationSuccess,
+  color = "#A8FF01",
+  text = "#000000",
+  initialPhone = "",
+  autoSendOtp = false,
+}: VerifyNumberProps) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [showOTP, setShowOTP] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState("")
   const [countdown, setCountdown] = useState(0)
   const [showOTPMessage, setShowOTPMessage] = useState(false)
+  const autoOtpSentRef = useRef(false)
 
   const phoneForm = useForm<z.infer<typeof phoneSchema>>({
     resolver: zodResolver(phoneSchema),
     defaultValues: {
-      phone: "",
+      phone: initialPhone,
     },
     mode: "onChange"
   })
+
+  const sendOtpForPhone = async (phone: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${BACKEND_BASE_URL}/driver-auth/send-otp`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone_number: phone,
+            purpose: "signup"
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setPhoneNumber(phone);
+        setShowOTP(true);
+        setCountdown(data.data.expires_in || 600);
+        setShowOTPMessage(true);
+        setTimeout(() => setShowOTPMessage(false), 5000);
+      } else {
+        phoneForm.setError("phone", {
+          type: "manual",
+          message: data.message || "Failed to send OTP. Please try again.",
+        });
+      }
+    } catch {
+      phoneForm.setError("phone", {
+        type: "manual",
+        message: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const otpForm = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
@@ -320,45 +370,21 @@ const VerifyNumber = ({ onVerificationSuccess, color = "#A8FF01", text = "#00000
     mode: "onChange"
   })
 
-  const onPhoneSubmit = async (values: z.infer<typeof phoneSchema>) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${BACKEND_BASE_URL}/driver-auth/send-otp`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phone_number: values.phone,
-            purpose: "signup"
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
-        setPhoneNumber(values.phone);
-        setShowOTP(true);
-        setCountdown(data.data.expires_in || 600); // 600 seconds = 10 minutes
-        setShowOTPMessage(true);
-        setTimeout(() => {
-          setShowOTPMessage(false);
-        }, 5000);
-      } else {
-        phoneForm.setError("phone", {
-          type: "manual",
-          message: data.message || "Failed to send OTP. Please try again.",
-        });
-      }
-    } catch (error) {
-      phoneForm.setError("phone", {
-        type: "manual",
-        message: "Something went wrong. Please try again.",
-      });
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (
+      autoSendOtp &&
+      initialPhone.length === 10 &&
+      !showOTP &&
+      !autoOtpSentRef.current
+    ) {
+      autoOtpSentRef.current = true;
+      sendOtpForPhone(initialPhone);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoSendOtp, initialPhone]);
+
+  const onPhoneSubmit = async (values: z.infer<typeof phoneSchema>) => {
+    await sendOtpForPhone(values.phone);
   };
 
   // In VerifyNumber.tsx - around line 80

@@ -3,6 +3,11 @@
 
 export const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL ? process.env.NEXT_PUBLIC_BACKEND_BASE_URL : 'https://qa-townerappapi.nimmavahana.com/towner-app/api/v1';
 
+/** Distributor / company panel API — inactive driver rejoin under a distributor */
+export const DISTRIBUTOR_API_BASE_URL = process.env.NEXT_PUBLIC_DISTRIBUTOR_API_BASE_URL
+  ? process.env.NEXT_PUBLIC_DISTRIBUTOR_API_BASE_URL
+  : 'https://townerdapi.nimmavahana.com/company/api/v1';
+
 /** Referral landing: `/ref?code=ABC123` → Play Store with Install Referrer. */
 export const referral = {
   androidPackageId: "com.towner.app",
