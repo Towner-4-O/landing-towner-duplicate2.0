@@ -51,11 +51,11 @@ export async function resendInactiveDriverOtp(
   phone_number: string,
   business_id: string,
 ): Promise<{ expires_in: number; otp?: number }> {
-  const result = await post<{ expires_in: number; otp?: number }>("/resend-otp", {
+  const result = await post<{ expires_in: number; otp?: number }>("/resend-otp/verifictaion", {
     phone_number: normalizePhone(phone_number),
     business_id,
   });
-  return result.data ?? { expires_in: 600 };
+  return result.data ?? { expires_in: 60000 };
 }
 
 export async function assignInactiveDriver(
@@ -74,6 +74,7 @@ export async function assignInactiveDriver(
 export function isDriverNotFoundError(message: string): boolean {
   return message.toLowerCase().includes("no driver found");
 }
+
 
 export function isRecentlyActiveError(message: string): boolean {
   return (

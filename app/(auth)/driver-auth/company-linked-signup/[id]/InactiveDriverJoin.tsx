@@ -227,7 +227,7 @@ export default function InactiveDriverJoin({
                   Verifying...
                 </>
               ) : (
-                "Verify & Join Distributor"
+                "Verify & Assign"
               )}
             </Button>
 
@@ -272,7 +272,7 @@ export default function InactiveDriverJoin({
         <div className="text-center mb-2">
           <h1 className="text-xl font-bold text-black">Welcome Back, Driver</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            Your account is eligible to rejoin this distributor
+            Your account is eligible to rejoin under this company
           </p>
         </div>
 
@@ -305,15 +305,6 @@ export default function InactiveDriverJoin({
                   : "No completed trips"}
               </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-500 flex items-center gap-1">
-                <Building2 className="h-3.5 w-3.5" />
-                Distributor
-              </span>
-              <span className="font-semibold text-right">
-                {driverPreview.business_name}
-              </span>
-            </div>
           </div>
         </div>
 
@@ -322,7 +313,7 @@ export default function InactiveDriverJoin({
           <p>
             Drivers whose last completed trip was more than{" "}
             {driverPreview.inactive_days_required} days ago can rejoin under a
-            new distributor. OTP verification is required to confirm.
+            new company. OTP verification is required to confirm.
           </p>
         </div>
 
@@ -343,7 +334,7 @@ export default function InactiveDriverJoin({
               Please wait...
             </>
           ) : (
-            "Join Under This Distributor"
+            "Assign Under Me"
           )}
         </Button>
 
@@ -362,7 +353,7 @@ export default function InactiveDriverJoin({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-emerald-600" />
-              Confirm joining distributor
+              Confirm joining company
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-left text-sm text-gray-600">
@@ -380,7 +371,7 @@ export default function InactiveDriverJoin({
                 <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-amber-900 text-xs leading-relaxed">
                   An OTP will be sent to <strong>+91 {phoneNumber}</strong> to
                   verify your identity. By continuing, you agree to operate
-                  under this distributor&apos;s fleet.
+                  under this company&apos;s fleet.
                 </div>
               </div>
             </AlertDialogDescription>
