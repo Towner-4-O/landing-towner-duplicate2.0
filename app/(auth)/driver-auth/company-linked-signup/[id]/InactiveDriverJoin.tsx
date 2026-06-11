@@ -334,7 +334,7 @@ export default function InactiveDriverJoin({
               Please wait...
             </>
           ) : (
-            "Assign Under Me"
+            "Welcome Back to Towner"
           )}
         </Button>
 
@@ -353,21 +353,10 @@ export default function InactiveDriverJoin({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-emerald-600" />
-              Confirm joining company
+              Confirm joining Towner
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-left text-sm text-gray-600">
-                <p>
-                  You are about to link your driver account (
-                  <span className="font-medium text-gray-900">
-                    {driverPreview.driver_name}
-                  </span>
-                  ) with{" "}
-                  <span className="font-medium text-gray-900">
-                    {driverPreview.business_name}
-                  </span>
-                  .
-                </p>
                 <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-amber-900 text-xs leading-relaxed">
                   An OTP will be sent to <strong>+91 {phoneNumber}</strong> to
                   verify your identity. By continuing, you agree to operate
