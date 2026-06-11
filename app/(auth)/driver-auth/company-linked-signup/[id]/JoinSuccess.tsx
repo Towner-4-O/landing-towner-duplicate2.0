@@ -24,7 +24,7 @@ export default function JoinSuccess({ result, onDone }: JoinSuccessProps) {
       </h2>
       <p className="mt-2 text-sm text-gray-600 text-center max-w-sm leading-relaxed">
         You have successfully rejoined{" "}
-        <span className="font-semibold text-gray-900">{result.business_name}</span>.
+        <span className="font-semibold text-gray-900">Towner</span>.
         Open the Towner Driver app to start accepting trips.
       </p>
 
