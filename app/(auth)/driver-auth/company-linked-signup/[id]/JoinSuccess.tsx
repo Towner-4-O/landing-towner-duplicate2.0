@@ -1,8 +1,13 @@
 "use client";
 
-import { CheckCircle2, Building2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CheckCircle2, Building2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { media, referral } from "@/constant";
 import type { AssignDriverResult } from "./types";
+
+const PLAY_STORE_URL = media.TOWNER_PLAYSTORE;
+const AUTO_REDIRECT_MS = referral.autoRedirectMs;
 
 interface JoinSuccessProps {
   result: AssignDriverResult;
@@ -10,6 +15,33 @@ interface JoinSuccessProps {
 }
 
 export default function JoinSuccess({ result, onDone }: JoinSuccessProps) {
+  const [secondsLeft, setSecondsLeft] = useState(AUTO_REDIRECT_MS / 1000);
+  const [redirecting, setRedirecting] = useState(false);
+  const redirectedRef = useRef(false);
+
+  const goToPlayStore = useCallback(() => {
+    if (redirectedRef.current) return;
+    redirectedRef.current = true;
+    setRedirecting(true);
+    window.location.replace(PLAY_STORE_URL);
+  }, []);
+
+  useEffect(() => {
+    const start = Date.now();
+    const interval = window.setInterval(() => {
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, AUTO_REDIRECT_MS - elapsed);
+      setSecondsLeft(Math.max(1, Math.ceil(remaining / 1000)));
+
+      if (remaining <= 0) {
+        window.clearInterval(interval);
+        goToPlayStore();
+      }
+    }, 50);
+
+    return () => window.clearInterval(interval);
+  }, [goToPlayStore]);
+
   return (
     <div className="flex flex-col items-center py-4 animate-in fade-in zoom-in-95 duration-500">
       <div className="relative mb-6">
@@ -25,7 +57,13 @@ export default function JoinSuccess({ result, onDone }: JoinSuccessProps) {
       <p className="mt-2 text-sm text-gray-600 text-center max-w-sm leading-relaxed">
         You have successfully rejoined{" "}
         <span className="font-semibold text-gray-900">Towner</span>.
-        Open the Towner Driver app to start accepting trips.
+        Install the Towner Driver app to start accepting trips.
+      </p>
+
+      <p className="mt-4 text-xs text-gray-500 text-center">
+        {redirecting
+          ? "Redirecting to Google Play…"
+          : `Opening Google Play in ${secondsLeft}s…`}
       </p>
 
       <div className="mt-6 w-full rounded-xl border border-[#A8FF01]/40 bg-[#f8fff0] p-4 space-y-3">
@@ -58,8 +96,18 @@ export default function JoinSuccess({ result, onDone }: JoinSuccessProps) {
       </div>
 
       <Button
+        onClick={goToPlayStore}
+        disabled={redirecting}
+        className="mt-6 w-full bg-[#A8FF01] text-black hover:bg-[#A8FF01]/90 h-11 gap-2"
+      >
+        <Download className="h-4 w-4" />
+        Install Towner on Google Play
+      </Button>
+
+      <Button
         onClick={onDone}
-        className="mt-6 w-full bg-[#A8FF01] text-black hover:bg-[#A8FF01]/90 h-11"
+        variant="outline"
+        className="mt-3 w-full h-11"
       >
         Done
       </Button>
