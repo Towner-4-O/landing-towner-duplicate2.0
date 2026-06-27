@@ -102,7 +102,7 @@ export default function CompanyPhoneCheck({
       <div className="flex items-start gap-2 rounded-lg bg-[#f8fff0] border border-[#A8FF01]/30 p-3 text-xs text-gray-700">
         <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600" />
         <p>
-          Existing drivers inactive for 30+ days can rejoin this distributor.
+          Existing drivers inactive for 30+ days can reactivate your account.
           New drivers can register with the same number.
         </p>
       </div>
