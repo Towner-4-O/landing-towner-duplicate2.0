@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   FaCar,
   FaUserFriends,
@@ -63,6 +63,20 @@ type StatCardProps = {
   trend?: number;
 };
 
+const formatStatValue = (value: string, isCurrency = false): string => {
+  const sanitized = value.replace(/[₹$,\s]/g, "");
+  const num = Number(sanitized);
+  if (Number.isNaN(num)) return value;
+  if (isCurrency) {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(num);
+  }
+  return num.toLocaleString("en-IN");
+};
+
 const StatCard = ({
   title,
   value,
@@ -71,21 +85,9 @@ const StatCard = ({
   live = false,
   trend,
 }: StatCardProps) => {
-  // Strip currency symbols and commas to attempt a numeric parse
-  const sanitizedValue =
-    typeof value === "string" ? value.replace(/[$,]/g, "") : "0";
-  const parsedNumeric = parseInt(sanitizedValue);
-  const isNumeric = !isNaN(parsedNumeric);
+  const isCurrency = title === "Driver Earnings" || /[₹$]/.test(value);
+  const displayValue = formatStatValue(value, isCurrency);
 
-  // Use the raw string for display when the value contains non-numeric chars (e.g. "$205,242")
-  const [displayValue, setDisplayValue] = useState<string | number>(
-    isNumeric ? parsedNumeric : value
-  );
-
-  useEffect(() => {
-    setDisplayValue(isNumeric ? parsedNumeric : value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
   return (
     <div
       // className={`relative overflow-hidden p-6 rounded-xl border hover:shadow-lg transition-all duration-300 ${
