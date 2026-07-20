@@ -63,7 +63,7 @@ interface ApiData {
 }
 
 const OpenDataClient = () => {
-  const [activeFilter, setActiveFilter] = useState<TimeFilter>("today");
+  const [activeFilter, setActiveFilter] = useState<TimeFilter>("lifetime");
   const [data, setData] = useState<ApiData>({
     heroData: null,
     registerData: null,
@@ -81,12 +81,20 @@ const OpenDataClient = () => {
   const isFetchingRef = useRef(false);
 
   const formatValue = useCallback((value: unknown, isCurrency = false): string => {
-    if (value === undefined || value === null) return "0";
-    if (typeof value === "number") {
-      const formatted = value.toLocaleString();
-      return isCurrency ? `${formatted}` : formatted;
+    if (value === undefined || value === null || value === "") return "0";
+    const num =
+      typeof value === "number"
+        ? value
+        : Number(String(value).replace(/[₹$,\s]/g, ""));
+    if (Number.isNaN(num)) return String(value);
+    if (isCurrency) {
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      }).format(num);
     }
-    return String(value);
+    return num.toLocaleString("en-IN");
   }, []);
 
   const buildApiData = useCallback(
