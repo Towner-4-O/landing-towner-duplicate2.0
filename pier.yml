@@ -1,0 +1,107 @@
+# Pier CI/CD pipeline — landing-towner-duplicate2.0 (legacy v1 Next.js frontend)
+# Replaces the dead GitHub Actions workflow (GH Actions is disabled org-wide).
+#
+# Build runs in a Docker container on Pier (compile check only — nothing from
+# the container is shipped). Deploy runs each step over AWS SSM Run Command on
+# legacy-web-01 (13.202.240.228) (i-0ad037931a56e9598), which rebuilds from source in place.
+#
+# Each `deploy.steps[*].run` is its own SSM invocation running as ROOT, and env
+# does NOT persist between steps. The app runs as the `ubuntu` user under a
+# user-level PM2 daemon with an nvm-managed node, so every step drops to
+# `ubuntu` and sources nvm inside its own `bash -c`.
+#
+# /bin/sh on these hosts is dash and SSM runs the step script with sh — so the
+# outer script sticks to POSIX `set -eu` and all bashisms live inside bash -c.
+#
+# The host owns its config: /data/apps/towner-landing-web/.env is hand-tuned,
+# gitignored, and holds live secrets. This pipeline NEVER writes it.
+# `git reset --hard` only touches tracked files, so .env survives.
+#
+# legacy-web-01 (13.202.240.228) is small, and two concurrent `next build`s OOM it — every host build
+# is serialised behind flock on /tmp/frontend-deploy.lock. The previous .next
+# is kept as .next.prev and restored if the build fails, so a red build can
+# never leave the running site with a half-written .next.
+version: 1
+image: node:20-bookworm
+cache:
+  paths:
+    - node_modules
+    - .next/cache
+env:
+  CI: "true"
+  NEXT_TELEMETRY_DISABLED: "1"
+  # Pier build containers are capped at 2g — a higher heap ceiling lets
+  # `next build` get OOM-killed (SIGKILL) instead of GCing.
+  NODE_OPTIONS: "--max_old_space_size=1536"
+steps:
+  - name: install
+    run: npm install --legacy-peer-deps --no-audit --no-fund
+  - name: build
+    run: npm run build
+
+deploy:
+  # legacy-web-01 (13.202.240.228) — towner-landing-web on :3010, fronted by nginx at https://towner.nimmavahana.com/
+  - target: legacy-web-01
+    branches: [release-v2]
+    approval: auto
+    after: build
+    steps:
+      - name: git-sync
+        run: |
+          set -eu
+          sudo -u ubuntu -H env SHA="${COMMIT_SHA}" bash -c '
+            set -euo pipefail
+            cd /data/apps/towner-landing-web
+            # Read-only deploy key, bound to the github.com-<repo> ssh alias.
+            git remote set-url origin git@github.com-landing-towner-duplicate2.0:Towner-4-O/landing-towner-duplicate2.0.git
+            git fetch origin release-v2 --prune
+            # reset --hard drops tracked-file drift only; untracked .env is
+            # left alone on purpose.
+            git reset --hard "$SHA"
+            git log -1 --oneline
+          '
+
+      - name: install-and-build
+        run: |
+          set -eu
+          flock -w 1800 /tmp/frontend-deploy.lock \
+          sudo -u ubuntu -H bash -c '
+            export NVM_DIR="$HOME/.nvm"
+            . "$NVM_DIR/nvm.sh"
+            set -euo pipefail
+            cd /data/apps/towner-landing-web
+            npm install --legacy-peer-deps --no-audit --no-fund
+            rm -rf .next.prev
+            if [ -d .next ]; then cp -a .next .next.prev; fi
+            if npm run build; then
+              rm -rf .next.prev
+            else
+              echo "[pier] build failed — restoring previous .next"
+              rm -rf .next
+              if [ -d .next.prev ]; then mv .next.prev .next; fi
+              exit 1
+            fi
+          '
+
+      - name: pm2-rollout
+        run: |
+          set -eu
+          sudo -u ubuntu -H bash -c '
+            export NVM_DIR="$HOME/.nvm"
+            . "$NVM_DIR/nvm.sh"
+            set -euo pipefail
+            pm2 reload towner-landing-web
+            pm2 save
+          '
+
+      - name: health-check
+        run: |
+          set -eu
+          echo "[pier] probing 127.0.0.1:3010/"
+          curl -fsS -o /dev/null -w "local=%{http_code}\n" \
+            --retry 10 --retry-delay 3 --retry-connrefused \
+            http://127.0.0.1:3010/
+          echo "[pier] probing https://towner.nimmavahana.com/"
+          curl -fsS -o /dev/null -w "edge=%{http_code}\n" \
+            --retry 5 --retry-delay 3 https://towner.nimmavahana.com/
+          echo "[pier] deploy ${COMMIT_SHA} live"
