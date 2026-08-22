@@ -14,10 +14,19 @@ const sendResponse = (status: number, message: string, data?: any) => {
 
 export const dynamic = "force-dynamic";
 
-const JWT_SECRET = process.env.JWT_SECRET || "010101";
+// No fallback on purpose. This previously defaulted to "010101", so any deploy
+// missing JWT_SECRET would sign admin sessions with a value published in the
+// source — anyone could forge an admin cookie for /adminspace. Missing config
+// must fail closed, not silently downgrade to a known key.
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function POST(req: NextRequest) {
   try {
+    if (!JWT_SECRET) {
+      console.error("JWT_SECRET is not set — refusing to issue admin tokens");
+      return sendResponse(500, "Server is misconfigured. Contact an administrator.");
+    }
+
     const { email, password } = await req.json();
 
     const { error } = loginAdminSchema.validate({ email, password });
